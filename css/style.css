@@ -1,0 +1,205 @@
+/* Type-based background colors */
+.type-normal  { background: #cfcfcf !important; }
+.type-fire    { background: #ffdab9 !important; }
+.type-water   { background: #cce8ff !important; }
+.type-grass   { background: #d7f5c4 !important; }
+.type-electric{ background: #fff6a5 !important; }
+.type-ice     { background: #e0faff !important; }
+.type-fighting{ background: #f5c4c4 !important; }
+.type-poison  { background: #f3d1ff !important; }
+.type-ground  { background: #f0e0b0 !important; }
+.type-flying  { background: #e8e8ff !important; }
+.type-psychic { background: #ffd1e8 !important; }
+.type-bug     { background: #e6f8c9 !important; }
+.type-rock    { background: #e6d8b8 !important; }
+.type-ghost   { background: #e6e0ff !important; }
+.type-dragon  { background: #d4e4ff !important; }
+.type-dark    { background: #d5d5d5 !important; }
+.type-steel   { background: #e3eaf0 !important; }
+.type-fairy   { background: #ffe3f8 !important; }
+
+
+/* GENERAL PAGE LAYOUT */
+body {
+    font-family: Arial, sans-serif;
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+    background: #f4f4f4;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-weight: normal;
+}
+
+a {
+    text-decoration: none;
+    color: #000000;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* =============================== */
+/* INDEX PAGE (POKÉDEX GRID)       */
+/* =============================== */
+
+.pokemon-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.poke-item {
+    text-align: center;
+    padding: 15px;
+    border-radius: 15px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: 0.2s ease;
+}
+
+.poke-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.poke-item img {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+}
+
+.top-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+#search,
+#typeFilter {
+    padding: 8px;
+    font-size: 16px;
+}
+
+/* =============================== */
+/* POKÉMON DETAIL PAGE             */
+/* =============================== */
+
+.pokemon-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 25px;
+}
+
+.pokemon-header {
+    text-align: center;
+}
+
+.pokemon-header img {
+    width: 280px;
+    display: block;
+    margin: 10px auto;
+}
+
+.nav-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.nav-buttons a {
+    background: #ff0000;
+    color: white !important;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+.nav-buttons a:hover {
+    background: #d40000;
+}
+
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+ul li {
+    background: #efefef;
+    margin: 5px 0;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.evo-chain {
+    background: #fff4d6;
+    padding: 12px;
+    border-radius: 8px;
+    display: inline-block;
+    font-weight: bold;
+}
+
+details {
+    background: #fff;
+    padding: 10px 16px;
+    margin: 14px 0;
+}
+
+details summary {
+    cursor: pointer;
+    list-style: none;
+    display: block; 
+    padding: 6px 0;
+    outline: none;
+}
+
+details summary h3 {
+    margin: 0; 
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1.2;
+}
+
+details summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Use a block ::after so it appears below the h3 and centered */
+details summary::after {
+    content: "➕";
+    display: block; /* places arrow on its own line under the heading */
+    text-align: left;
+    margin-top: 8px;
+    font-size: 18px;
+    transition: transform 0.15s ease;
+}
+
+details[open] summary::after {
+    content: "➖";
+    transform: rotate(0deg);
+}
+
+/* Slightly indent the folded content for readability */
+details > *:not(summary) {
+    margin-top: 12px;
+    padding-left: 6px;
+}
+
+/* Optional: keep list styling inside details consistent */
+details ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+details ul li {
+    background: #efefef;
+    margin: 6px 0;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
