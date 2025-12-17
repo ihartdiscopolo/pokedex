@@ -95,11 +95,11 @@ $list = json_decode($listJson, true);
 
         <label class="fav-toggle">
             <input type="checkbox" id="favOnly">
-            Favorites
+            Favorites !
         </label>
 
         <button id="randomPokemonBtn" class="random-small-btn">
-            Random Pokemon
+            Generate random Pokemon ? 
         </button>
 
         <hr>
@@ -354,6 +354,18 @@ $list = json_decode($listJson, true);
 
     renderTeam();
     renderSavedTeams();
+
+    document.getElementById("randomPokemonBtn").addEventListener("click", () => {
+        // only pick from currently visible Pokémon
+        const visible = [...items].filter(item => item.style.display !== "none");
+
+        if (!visible.length) return alert("No Pokémon available");
+
+        const randomItem = visible[Math.floor(Math.random() * visible.length)];
+        const id = randomItem.dataset.id;
+
+        window.location.href = `pokemon.php?id=${id}`;
+    });
 </script>
 
 </html>
