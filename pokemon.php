@@ -36,27 +36,42 @@ foreach ($species['flavor_text_entries'] as $entry) {
     }
 }
 
+$encountersUrl = "https://pokeapi.co/api/v2/pokemon/$id/encounters";
+$encountersJson = file_get_contents($encountersUrl);
+$encounters = json_decode($encountersJson, true);
+
+
 // Get species data (already done)
 $evoChainUrl = $species['evolution_chain']['url'];
 $evoJson = file_get_contents($evoChainUrl);
 $evoData = json_decode($evoJson, true);
 
 // Recursive function to flatten evolution chain
-function getEvolutionChain($chain)
+function getEvolutionChain($chain, &$result = [])
 {
-    $evolutions = [];
-    $evolutions[] = $chain['species']['name'];
-    if (!empty($chain['evolves_to'])) {
-        foreach ($chain['evolves_to'] as $e) {
-            $evolutions = array_merge($evolutions, getEvolutionChain($e));
-        }
+    // Fetch Pokémon data to get ID + image
+    $pokeJson = file_get_contents("https://pokeapi.co/api/v2/pokemon/" . $chain['species']['name']);
+    $pokeData = json_decode($pokeJson, true);
+
+    $result[] = [
+        'id' => $pokeData['id'],
+        'name' => $chain['species']['name'],
+        'image' => $pokeData['sprites']['other']['official-artwork']['front_default']
+            ?? $pokeData['sprites']['front_default']
+    ];
+
+    foreach ($chain['evolves_to'] as $evo) {
+        getEvolutionChain($evo, $result);
     }
-    return $evolutions;
+
+    return $result;
 }
 
 $evolutionChain = getEvolutionChain($evoData['chain']);
 
 $types = $pokemon['types'];
+$primaryType = $pokemon['types'][0]['type']['name'] ?? null;
+$secondaryType = $pokemon['types'][1]['type']['name'] ?? null;
 $damageRelations = [];
 
 foreach ($types as $t) {
@@ -66,9 +81,75 @@ foreach ($types as $t) {
 
     $damageRelations[$t['type']['name']] = $typeData['damage_relations'];
 }
+$effectiveness = [];
+
+foreach ($damageRelations as $type => $relations) {
+
+    foreach ($relations['double_damage_from'] as $t) {
+        $effectiveness[$t['name']] = ($effectiveness[$t['name']] ?? 1) * 2;
+    }
+
+    foreach ($relations['half_damage_from'] as $t) {
+        $effectiveness[$t['name']] = ($effectiveness[$t['name']] ?? 1) * 0.5;
+    }
+
+    foreach ($relations['no_damage_from'] as $t) {
+        $effectiveness[$t['name']] = 0;
+    }
+}
+
+$groups = [
+    '4× Weak' => [],
+    '2× Weak' => [],
+    '½× Resistant' => [],
+    '¼× Resistant' => [],
+    'Immune' => []
+];
+
+foreach ($effectiveness as $type => $value) {
+    if ($value === 4) $groups['4× Weak'][] = $type;
+    elseif ($value === 2) $groups['2× Weak'][] = $type;
+    elseif ($value === 0.5) $groups['½× Resistant'][] = $type;
+    elseif ($value === 0.25) $groups['¼× Resistant'][] = $type;
+    elseif ($value === 0) $groups['Immune'][] = $type;
+}
 
 $prev = $id > 1 ? $id - 1 : null;
 $next = $id + 1; // allow next >151 if you want full dex; adjust if you want a cap
+
+$typeColors = [
+    'normal' => '#a6a6a6ff',
+    'fire' => '#ffb677ff',
+    'water' => '#9bd2ffff',
+    'grass' => '#c4ffa0ff',
+    'electric' => '#fff281ff',
+    'ice' => '#d3f8ffff',
+    'fighting' => '#ff9696ff',
+    'poison' => '#dc7affff',
+    'ground' => '#dfd1a5ff',
+    'flying' => '#cfcfffff',
+    'psychic' => '#ffb3d9ff',
+    'bug' => '#e3ffa3ff',
+    'rock' => '#dec68dff',
+    'ghost' => '#c9c0ebff',
+    'dragon' => '#a7c7ffff',
+    'dark' => '#414141ff',
+    'steel' => '#bec6ccff',
+    'fairy' => '#ffdff7ff',
+];
+
+// Build gradient if dual type
+$bodyStyle = '';
+
+if ($primaryType) {
+    $color1 = $typeColors[$primaryType] ?? '#ffffff';
+    $bodyStyle .= "--type1: $color1;";
+}
+
+if ($secondaryType) {
+    $color2 = $typeColors[$secondaryType] ?? '#ffffff';
+    $bodyStyle .= "--type2: $color2;";
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -76,22 +157,40 @@ $next = $id + 1; // allow next >151 if you want full dex; adjust if you want a c
 <head>
     <meta charset="utf-8">
     <title><?= htmlspecialchars($name) ?> Details</title>
+
+    <?php
+    $favicon = $pokemon['sprites']['other']['official-artwork']['front_default']
+        ?? $pokemon['sprites']['front_default']
+        ?? null;
+    ?>
+
+    <?php if ($favicon): ?>
+        <link rel="icon" type="image/png" href="<?= htmlspecialchars($favicon) ?>">
+    <?php endif; ?>
+
+
     <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body>
+
+<body
+    style="<?= htmlspecialchars($bodyStyle) ?>"
+    class="<?= $primaryType ? 'type-' . htmlspecialchars($primaryType) : '' ?><?= $secondaryType ? ' dual-type' : '' ?>"
+>
+
 
     <a href="index.php">⬅ Back to Pokédex</a>
 
-    <div class="nav-buttons" style="margin-top:12px;">
+    <div class="nav-buttons">
         <?php if ($prev): ?>
-            <a href="pokemon.php?id=<?= $prev ?>">⬅ Previous</a>
+            <a class="nav-btn prev-btn" href="pokemon.php?id=<?= $prev ?>">⬅ Previous</a>
         <?php endif; ?>
 
         <?php if ($next): ?>
-            <a href="pokemon.php?id=<?= $next ?>">Next ➡</a>
+            <a class="nav-btn next-btn" href="pokemon.php?id=<?= $next ?>">Next ➡</a>
         <?php endif; ?>
     </div>
+
 
     <div class="pokemon-card">
         <div class="pokemon-header">
@@ -113,20 +212,77 @@ $next = $id + 1; // allow next >151 if you want full dex; adjust if you want a c
         <h3>Description</h3>
         <p><?= nl2br(htmlspecialchars($flavor)) ?></p>
 
+        <h3>Cries</h3>
+        <?php if (!empty($pokemon['cries']['latest'])): ?>
+            <audio controls>
+                <source src="<?= htmlspecialchars($pokemon['cries']['latest']) ?>" type="audio/ogg">
+                Your browser does not support the audio tag.
+            </audio>
+        <?php else: ?>
+            <p>No cry available.</p>
+        <?php endif; ?>
+
+
         <h3>Types</h3>
-        <ul>
-            <?php foreach ($pokemon['types'] as $type): ?>
-                <li><?= htmlspecialchars(ucfirst($type['type']['name'])) ?></li>
+        <div class="type-icons">
+            <?php foreach ($pokemon['types'] as $type):
+                $typeName = $type['type']['name'];
+                $typeIcon = "images/" . $typeName . "1.png";
+            ?>
+                <img src="<?= htmlspecialchars($typeIcon) ?>"
+                    alt="<?= htmlspecialchars($typeName) ?>"
+                    class="type-icon">
             <?php endforeach; ?>
-        </ul>
+        </div>
+
+        <h3>Type Effectiveness</h3>
+
+        <?php foreach ($groups as $label => $types): ?>
+            <?php if (!empty($types)): ?>
+                <p><strong><?= $label ?>:</strong></p>
+                <div class="type-icons">
+                    <?php foreach ($types as $t):
+                        $icon = "images/" . $t . "1.png";
+                    ?>
+                        <img src="<?= htmlspecialchars($icon) ?>" alt="<?= htmlspecialchars($t) ?>" class="type-icon">
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        <?php endforeach; ?>
 
         <h3>Damage Relations</h3>
         <?php foreach ($damageRelations as $typeName => $relations): ?>
             <h4><?= htmlspecialchars(ucfirst($typeName)) ?></h4>
             <ul>
-                <li>Double Damage From: <?= implode(", ", array_map(fn($r) => ucfirst($r), array_column($relations['double_damage_from'], 'name'))) ?></li>
-                <li>Half Damage From: <?= implode(", ", array_map(fn($r) => ucfirst($r), array_column($relations['half_damage_from'], 'name'))) ?></li>
-                <li>No Damage From: <?= implode(", ", array_map(fn($r) => ucfirst($r), array_column($relations['no_damage_from'], 'name'))) ?></li>
+                <li>
+                    <strong>Double Damage From:</strong>
+                    <?php foreach ($relations['double_damage_from'] as $r):
+                        $tName = $r['name'];
+                        $icon = "images/" . $tName . "1.png";
+                    ?>
+                        <img src="<?= htmlspecialchars($icon) ?>" alt="<?= htmlspecialchars($tName) ?>" class="type-icon">
+                    <?php endforeach; ?>
+                </li>
+
+                <li>
+                    <strong>Half Damage From:</strong>
+                    <?php foreach ($relations['half_damage_from'] as $r):
+                        $tName = $r['name'];
+                        $icon = "images/" . $tName . "1.png";
+                    ?>
+                        <img src="<?= htmlspecialchars($icon) ?>" alt="<?= htmlspecialchars($tName) ?>" class="type-icon">
+                    <?php endforeach; ?>
+                </li>
+
+                <li>
+                    <strong>No Damage From:</strong>
+                    <?php foreach ($relations['no_damage_from'] as $r):
+                        $tName = $r['name'];
+                        $icon = "images/" . $tName . "1.png";
+                    ?>
+                        <img src="<?= htmlspecialchars($icon) ?>" alt="<?= htmlspecialchars($tName) ?>" class="type-icon">
+                    <?php endforeach; ?>
+                </li>
             </ul>
         <?php endforeach; ?>
 
@@ -137,12 +293,27 @@ $next = $id + 1; // allow next >151 if you want full dex; adjust if you want a c
             <?php endforeach; ?>
         </ul>
 
-        <h3>Stats</h3>
-        <ul>
-            <?php foreach ($pokemon['stats'] as $stat): ?>
-                <li><?= htmlspecialchars(ucfirst($stat['stat']['name'])) ?>: <?= htmlspecialchars($stat['base_stat']) ?></li>
-            <?php endforeach; ?>
-        </ul>
+        <h3>Base Stats</h3>
+
+        <?php
+        // Max reasonable stat is ~255
+        $maxStat = 255;
+        ?>
+
+        <?php foreach ($pokemon['stats'] as $stat):
+            $value = $stat['base_stat'];
+            $percent = min(100, ($value / $maxStat) * 100);
+        ?>
+            <div class="stat-row">
+                <div class="stat-label">
+                    <?= htmlspecialchars(ucfirst($stat['stat']['name'])) ?>
+                    <span class="stat-value"><?= $value ?></span>
+                </div>
+                <div class="stat-bar-bg">
+                    <div class="stat-bar" style="width: <?= $percent ?>%;"></div>
+                </div>
+            </div>
+        <?php endforeach; ?>
 
         <details>
             <summary>
@@ -167,7 +338,26 @@ $next = $id + 1; // allow next >151 if you want full dex; adjust if you want a c
         </details>
 
         <h3>Evolution Chain</h3>
-        <p class="evo-chain"><?= implode(" ➔ ", array_map(fn($n) => htmlspecialchars(ucfirst($n)), $evolutionChain)) ?></p>
+
+        <div class="evo-chain">
+            <?php foreach ($evolutionChain as $i => $evo): ?>
+                <div class="evo-item">
+                    <a href="pokemon.php?id=<?= $evo['id'] ?>">
+                        <?php if (!empty($evo['image'])): ?>
+                            <img src="<?= htmlspecialchars($evo['image']) ?>"
+                                alt="<?= htmlspecialchars($evo['name']) ?>">
+                        <?php endif; ?>
+                        <span><?= htmlspecialchars(ucfirst($evo['name'])) ?></span>
+                    </a>
+                </div>
+
+                <?php if ($i < count($evolutionChain) - 1): ?>
+                    <div class="evo-arrow">➔</div>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+
+
 
         <h3>Held Items</h3>
         <ul>
@@ -179,8 +369,168 @@ $next = $id + 1; // allow next >151 if you want full dex; adjust if you want a c
                 <?php endforeach; ?>
             <?php endif; ?>
         </ul>
-    </div>
 
+
+        <h3>Sprites</h3>
+        <div class="sprite-row">
+            <div class="sprite-col">
+                <p><strong>Default:</strong></p>
+                <?php if (!empty($pokemon['sprites']['front_default'])): ?>
+                    <img src="<?= htmlspecialchars($pokemon['sprites']['front_default']) ?>" alt="Front Default">
+                <?php endif; ?>
+
+                <?php if (!empty($pokemon['sprites']['back_default'])): ?>
+                    <img src="<?= htmlspecialchars($pokemon['sprites']['back_default']) ?>" alt="Back Default">
+                <?php endif; ?>
+            </div>
+
+            <div class="sprite-col">
+                <p><strong>Shiny:</strong></p>
+                <?php if (!empty($pokemon['sprites']['front_shiny'])): ?>
+                    <img src="<?= htmlspecialchars($pokemon['sprites']['front_shiny']) ?>" alt="Front Shiny">
+                <?php endif; ?>
+
+                <?php if (!empty($pokemon['sprites']['back_shiny'])): ?>
+                    <img src="<?= htmlspecialchars($pokemon['sprites']['back_shiny']) ?>" alt="Back Shiny">
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <h3>Animated Sprites (Gen 5)</h3>
+
+        <?php
+        $anim = $pokemon['sprites']['versions']['generation-v']['black-white']['animated'] ?? null;
+        $hasAnim = $anim && (
+            !empty($anim['front_default']) ||
+            !empty($anim['back_default']) ||
+            !empty($anim['front_shiny']) ||
+            !empty($anim['back_shiny'])
+        );
+        ?>
+
+        <?php if (!$hasAnim): ?>
+            <p>No animated sprites available.</p>
+        <?php else: ?>
+            <div class="sprite-row">
+                <div class="sprite-col">
+                    <p><strong>Default:</strong></p>
+                    <?php if (!empty($anim['front_default'])): ?>
+                        <img src="<?= htmlspecialchars($anim['front_default']) ?>" alt="Animated Front">
+                    <?php endif; ?>
+
+                    <?php if (!empty($anim['back_default'])): ?>
+                        <img src="<?= htmlspecialchars($anim['back_default']) ?>" alt="Animated Back">
+                    <?php endif; ?>
+                </div>
+
+                <div class="sprite-col">
+                    <p><strong>Shiny:</strong></p>
+                    <?php if (!empty($anim['front_shiny'])): ?>
+                        <img src="<?= htmlspecialchars($anim['front_shiny']) ?>" alt="Animated Shiny Front">
+                    <?php endif; ?>
+
+                    <?php if (!empty($anim['back_shiny'])): ?>
+                        <img src="<?= htmlspecialchars($anim['back_shiny']) ?>" alt="Animated Shiny Back">
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <h3>Gender Differences</h3>
+
+        <?php
+        $hasFemale =
+            !empty($pokemon['sprites']['front_female']) ||
+            !empty($pokemon['sprites']['back_female']) ||
+            !empty($pokemon['sprites']['front_shiny_female']) ||
+            !empty($pokemon['sprites']['back_shiny_female']);
+        ?>
+
+        <?php if (!$hasFemale): ?>
+            <p>No gender differences.</p>
+        <?php else: ?>
+            <div class="sprite-row">
+                <div class="sprite-col">
+                    <p><strong>Female (Normal):</strong></p>
+                    <?php if (!empty($pokemon['sprites']['front_female'])): ?>
+                        <img src="<?= htmlspecialchars($pokemon['sprites']['front_female']) ?>" alt="Female Front">
+                    <?php endif; ?>
+
+                    <?php if (!empty($pokemon['sprites']['back_female'])): ?>
+                        <img src="<?= htmlspecialchars($pokemon['sprites']['back_female']) ?>" alt="Female Back">
+                    <?php endif; ?>
+                </div>
+
+                <div class="sprite-col">
+                    <p><strong>Female (Shiny):</strong></p>
+                    <?php if (!empty($pokemon['sprites']['front_shiny_female'])): ?>
+                        <img src="<?= htmlspecialchars($pokemon['sprites']['front_shiny_female']) ?>" alt="Female Shiny Front">
+                    <?php endif; ?>
+
+                    <?php if (!empty($pokemon['sprites']['back_shiny_female'])): ?>
+                        <img src="<?= htmlspecialchars($pokemon['sprites']['back_shiny_female']) ?>" alt="Female Shiny Back">
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <h3>Alternate Forms</h3>
+
+        <?php if (count($species['varieties']) <= 1): ?>
+            <p>No alternate forms.</p>
+        <?php else: ?>
+            <div class="evo-chain">
+                <?php foreach ($species['varieties'] as $form):
+                    $formName = ucfirst($form['pokemon']['name']);
+                    $formUrl = $form['pokemon']['url'];
+
+                    $formJson = file_get_contents($formUrl);
+                    $formData = json_decode($formJson, true);
+
+                    $formImg = $formData['sprites']['other']['official-artwork']['front_default']
+                        ?? $formData['sprites']['front_default']
+                        ?? null;
+                ?>
+                    <div class="evo-item">
+                        <a href="pokemon.php?id=<?= $formData['id'] ?>">
+                            <?php if ($formImg): ?>
+                                <img src="<?= htmlspecialchars($formImg) ?>" alt="<?= htmlspecialchars($formName) ?>">
+                            <?php endif; ?>
+                            <span><?= htmlspecialchars($formName) ?></span>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+        <?php endif; ?>
+
+        <details>
+            <summary>
+                <h3>Encounter Locations</h3>
+            </summary>
+
+            <?php if (empty($encounters)): ?>
+                <p>No encounter data available.</p>
+            <?php else: ?>
+                <ul class="encounter-list">
+                    <?php foreach ($encounters as $enc):
+                        $loc = ucfirst(str_replace('-', ' ', $enc['location_area']['name']));
+                    ?>
+                        <li>
+                            <strong><?= htmlspecialchars($loc) ?></strong>
+                            <ul>
+                                <?php foreach ($enc['version_details'] as $version):
+                                    $game = ucfirst($version['version']['name']);
+                                ?>
+                                    <li><?= htmlspecialchars($game) ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+        </details>
+    </div>
 </body>
 
 </html>

@@ -1,25 +1,153 @@
-/* Type-based background colors */
-.type-normal  { background: #cfcfcf !important; }
-.type-fire    { background: #ffdab9 !important; }
-.type-water   { background: #cce8ff !important; }
-.type-grass   { background: #d7f5c4 !important; }
-.type-electric{ background: #fff6a5 !important; }
-.type-ice     { background: #e0faff !important; }
-.type-fighting{ background: #f5c4c4 !important; }
-.type-poison  { background: #f3d1ff !important; }
-.type-ground  { background: #f0e0b0 !important; }
-.type-flying  { background: #e8e8ff !important; }
-.type-psychic { background: #ffd1e8 !important; }
-.type-bug     { background: #e6f8c9 !important; }
-.type-rock    { background: #e6d8b8 !important; }
-.type-ghost   { background: #e6e0ff !important; }
-.type-dragon  { background: #d4e4ff !important; }
-.type-dark    { background: #d5d5d5 !important; }
-.type-steel   { background: #e3eaf0 !important; }
-.type-fairy   { background: #ffe3f8 !important; }
+body {
+    background: var(--type1, #f4f4f4);
+}
 
+body.dual-type {
+    background: linear-gradient(
+        to right,
+        var(--type1, #f4f4f4),
+        var(--type2, #f4f4f4)
+    );
+}
 
-/* GENERAL PAGE LAYOUT */
+.type-normal {
+    background: #cfcfcf;
+}
+.type-fire {
+    background: #ffdab9;
+}
+.type-water {
+    background: #cce8ff;
+}
+.type-grass {
+    background: #d7f5c4;
+}
+.type-electric {
+    background: #fff6a5;
+}
+.type-ice {
+    background: #e0faff;
+}
+.type-fighting {
+    background: #f5c4c4;
+}
+.type-poison {
+    background: #f3d1ff;
+}
+.type-ground {
+    background: #f0e0b0;
+}
+.type-flying {
+    background: #e8e8ff;
+}
+.type-psychic {
+    background: #ffd1e8;
+}
+.type-bug {
+    background: #e6f8c9;
+}
+.type-rock {
+    background: #e6d8b8;
+}
+.type-ghost {
+    background: #e6e0ff;
+}
+.type-dragon {
+    background: #d4e4ff;
+}
+.type-dark {
+    background: #d5d5d5;
+}
+.type-steel {
+    background: #e3eaf0;
+}
+.type-fairy {
+    background: #ffe3f8;
+}
+
+.type-normal .nav-btn {
+    background: linear-gradient(135deg, #a4a4a4, #9d9d9d);
+    color: #333 !important;
+}
+
+.type-fire .nav-btn {
+    background: linear-gradient(135deg, #ff6666, #ff9f68);
+}
+
+.type-water .nav-btn {
+    background: linear-gradient(135deg, #41b6ff, #90caf9);
+}
+
+.type-grass .nav-btn {
+    background: linear-gradient(135deg, #92c657, #9ccc65);
+}
+
+.type-electric .nav-btn {
+    background: linear-gradient(135deg, #ffb936, #ffe68d);
+    color: #333 !important;
+}
+
+.type-ice .nav-btn {
+    background: linear-gradient(135deg, #e8fcff, #9be7ff);
+    color: #333 !important;
+}
+
+.type-fighting .nav-btn {
+    background: linear-gradient(135deg, #ff6666, #ef9a9a);
+}
+
+.type-poison .nav-btn {
+    background: linear-gradient(135deg, #9d5cb3, #ce93d8);
+}
+
+.type-ground .nav-btn {
+    background: linear-gradient(135deg, #d4be75, #efd286);
+    color: #333 !important;
+}
+
+.type-flying .nav-btn {
+    background: linear-gradient(135deg, #8e8eec, #b39ddb);
+}
+
+.type-psychic .nav-btn {
+    background: linear-gradient(135deg, #e35f9c, #f48fb1);
+}
+
+.type-bug .nav-btn {
+    background: linear-gradient(135deg, #d9ff52, #9ebf57);
+    color: #333 !important;
+}
+
+.type-rock .nav-btn {
+    background: linear-gradient(135deg, #a69264, #c2b280);
+    color: #333 !important;
+}
+
+.type-ghost .nav-btn {
+    background: linear-gradient(135deg, #684abd, #8d70c4);
+}
+
+.type-dragon .nav-btn {
+    background: linear-gradient(135deg, #2566c8, #90caf9);
+}
+
+.type-dark .nav-btn {
+    background: linear-gradient(135deg, #4e4e4e, #171717);
+    color: #b4b4b4 !important;
+}
+
+.type-steel .nav-btn {
+    background: linear-gradient(135deg, #b9cde0, #8098a5);
+    color: #333 !important;
+}
+
+.type-fairy .nav-btn {
+    background: linear-gradient(135deg, #ff73c5, #f8bbd0);
+}
+
+html {
+    overflow-y: scroll;
+}
 body {
     font-family: Arial, sans-serif;
     max-width: 1200px;
@@ -27,7 +155,6 @@ body {
     padding: 20px;
     background: #f4f4f4;
 }
-
 h1,
 h2,
 h3,
@@ -42,19 +169,17 @@ a {
 a:hover {
     text-decoration: underline;
 }
-
-/* =============================== */
-/* INDEX PAGE (POKÉDEX GRID)       */
-/* =============================== */
-
 .pokemon-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     gap: 20px;
     margin-top: 20px;
 }
-
 .poke-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     text-align: center;
     padding: 15px;
     border-radius: 15px;
@@ -63,15 +188,34 @@ a:hover {
     transition: 0.2s ease;
 }
 
+.poke-item h2 {
+    min-height: 48px; /* enough for two lines */
+    display: flex;
+    align-items: center; /* vertically center text */
+    justify-content: center;
+    text-align: center;
+}
+
 .poke-item:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
 }
-
 .poke-item img {
     width: 150px;
     height: 150px;
     object-fit: contain;
+}
+
+.poke-item {
+    background: linear-gradient(180deg, #ffffff, #f8f8f8);
+}
+
+.poke-item img {
+    transition: transform 0.25s ease;
+}
+
+.poke-item:hover img {
+    transform: scale(1.05);
 }
 
 .top-controls {
@@ -85,9 +229,61 @@ a:hover {
     font-size: 16px;
 }
 
-/* =============================== */
-/* POKÉMON DETAIL PAGE             */
-/* =============================== */
+.type-filter {
+    position: relative;
+    width: 200px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.type-filter .selected {
+    background: #fff;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.type-filter .options {
+    display: none;
+    position: absolute;
+    background: #fff;
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-top: 5px;
+    z-index: 10;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.type-filter .option {
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.type-filter .option:hover {
+    background: #f0f0f0;
+}
+
+.type-filter img {
+    width: 24px;
+    height: 24px;
+}
+
+.pokemon-card h3 {
+    margin-top: 28px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #eee;
+    font-weight: bold;
+}
+
+.pokemon-card p {
+    line-height: 1.5;
+}
 
 .pokemon-card {
     background: white;
@@ -96,47 +292,30 @@ a:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     margin-top: 25px;
 }
-
 .pokemon-header {
     text-align: center;
 }
-
 .pokemon-header img {
     width: 280px;
     display: block;
     margin: 10px auto;
 }
-
 .nav-buttons {
     display: flex;
     justify-content: center;
     gap: 20px;
     margin-bottom: 20px;
 }
-
-.nav-buttons a {
-    background: #ff0000;
-    color: white !important;
-    padding: 8px 16px;
-    border-radius: 8px;
-    transition: 0.2s;
-}
-.nav-buttons a:hover {
-    background: #d40000;
-}
-
 ul {
     list-style: none;
     padding-left: 0;
 }
-
 ul li {
     background: #efefef;
     margin: 5px 0;
     padding: 8px 12px;
     border-radius: 8px;
 }
-
 .evo-chain {
     background: #fff4d6;
     padding: 12px;
@@ -144,54 +323,43 @@ ul li {
     display: inline-block;
     font-weight: bold;
 }
-
 details {
     background: #fff;
     padding: 10px 16px;
     margin: 14px 0;
 }
-
 details summary {
     cursor: pointer;
     list-style: none;
-    display: block; 
+    display: block;
     padding: 6px 0;
     outline: none;
 }
-
 details summary h3 {
-    margin: 0; 
+    margin: 0;
     font-size: 18px;
     font-weight: bold;
     line-height: 1.2;
 }
-
 details summary::-webkit-details-marker {
     display: none;
 }
-
-/* Use a block ::after so it appears below the h3 and centered */
 details summary::after {
     content: "➕";
-    display: block; /* places arrow on its own line under the heading */
+    display: block;
     text-align: left;
     margin-top: 8px;
     font-size: 18px;
     transition: transform 0.15s ease;
 }
-
 details[open] summary::after {
     content: "➖";
     transform: rotate(0deg);
 }
-
-/* Slightly indent the folded content for readability */
 details > *:not(summary) {
     margin-top: 12px;
     padding-left: 6px;
 }
-
-/* Optional: keep list styling inside details consistent */
 details ul {
     list-style: none;
     padding-left: 0;
@@ -202,4 +370,410 @@ details ul li {
     margin: 6px 0;
     padding: 8px 12px;
     border-radius: 8px;
+}
+
+.form-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    list-style: none;
+    padding: 0;
+}
+.form-item img {
+    width: 80px;
+    height: 80px;
+    display: block;
+}
+.sprite-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 16px;
+}
+
+.sprite-col img {
+    width: 96px;
+    height: 96px;
+    image-rendering: pixelated;
+}
+
+.form-list,
+.encounter-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.encounter-list > li {
+    margin-bottom: 12px;
+}
+
+.encounter-list ul {
+    margin-top: 4px;
+    margin-left: 20px;
+}
+.type-icons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.type-icon {
+    width: 100px;
+    height: 64px;
+    object-fit: contain;
+}
+
+/* Label click area */
+.fav-label {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    user-select: none;
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Hide checkbox */
+.fav-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+}
+
+/* Star emoji uses ::before so content can change */
+.star-emoji::before {
+    content: "☆"; /* default star */
+    font-size: 24px;
+    color: #bbb;
+    transition: 0.15s ease;
+}
+
+/* When checked → glowing star */
+.fav-checkbox:checked + .star-emoji::before {
+    content: "★"; /* selected star */
+    transform: scale(2);
+}
+
+/* HAMBURGER BUTTON */
+#menuBtn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #cfcfcf85;
+    color: rgb(255, 255, 255);
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+#teamHeader {
+    margin-top: 60px; /* adjust to match hamburger position */
+}
+
+/* SIDEBAR */
+#teamSidebar {
+    position: fixed;
+    top: 0;
+    left: -320px;
+    width: 265px;
+    height: 100%;
+    background: white;
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    padding-bottom: 80px; /* give breathing room */
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    transition: 0.25s ease;
+    z-index: 999;
+}
+
+#teamSidebar .coverage-row {
+    padding-bottom: 12px;
+}
+
+#teamSidebar h2 {
+    font-weight: bold;
+    padding-top: 40px;
+}
+
+#teamSidebar.open {
+    left: 0;
+}
+
+/* TEAM MEMBERS */
+.team-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.team-member {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f3f3f3;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.team-member img {
+    width: 50px;
+}
+
+.team-member button {
+    position: absolute;
+    right: 35px;
+}
+
+/* ADD BUTTON ON CARDS */
+.add-team-btn {
+    margin-top: 8px;
+    display: block;
+    width: 100%;
+    padding: 6px;
+    border: none;
+    border-radius: 6px;
+    background: #ffca28;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.add-team-btn:hover {
+    background: #ffb300;
+}
+
+/* TYPE COVERAGE CHIPS */
+.coverage-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 10px 0;
+}
+
+.type-chip {
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+#contentWrapper {
+    transition: margin-left 0.25s ease;
+}
+
+/* When sidebar is open */
+#teamSidebar.open ~ #contentWrapper {
+    margin-left: 230px; /* same as sidebar width */
+}
+
+.poke-name {
+    font-size: 20px;
+    margin: 0;
+    min-height: 28px; /* enough for 1–2 lines */
+}
+
+.poke-id {
+    font-size: 16px;
+    margin: 2px 0 10px 0;
+    opacity: 0.7;
+}
+
+/* Optional — make the header area a fixed height */
+.poke-item a {
+    display: flex;
+    flex-direction: column;
+}
+
+.poke-item a > .poke-name,
+.poke-item a > .poke-id {
+    text-align: center;
+}
+
+/* RANDOMIZE TEAM BUTTON STYLE */
+.random-small-btn {
+    padding: 8px 14px;
+    margin-left: 8px;
+    background: linear-gradient(135deg, #ff4545, #ff9854);
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.2s ease;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+.random-small-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.random-small-btn:active {
+    transform: scale(0.96);
+}
+
+/* STAT BARS */
+.stat-row {
+    margin-bottom: 12px;
+}
+
+.stat-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-weight: bold;
+}
+
+.stat-bar-bg {
+    width: 100%;
+    height: 12px;
+    background: #e0e0e0;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.stat-bar {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ff5252, #ffca28, #66bb6a);
+    transition: width 0.4s ease;
+}
+
+/* RANDOM TEAM BUTTON */
+.random-btn {
+    width: 100%;
+    padding: 12px;
+    margin: 12px 0 20px 0;
+    background: linear-gradient(135deg, #ff8e43, #ff2222);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.random-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.random-btn:active {
+    transform: scale(0.97);
+}
+
+.evo-chain {
+    background: #fff4d6;
+    padding: 12px 16px;
+    border-radius: 8px;
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    gap: 14px;
+    flex-wrap: wrap; /* ✅ allow wrapping */
+    row-gap: 16px; /* ✅ spacing between rows */
+}
+
+.evo-item {
+    text-align: center;
+    min-width: 80px;
+}
+
+.evo-item a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.evo-item img {
+    width: 80px;
+    height: 80px;
+    display: block;
+    margin: 0 auto 4px;
+}
+
+.evo-item span {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.evo-arrow {
+    font-size: 20px;
+    font-weight: bold;
+    opacity: 0.6;
+    line-height: 1;
+}
+
+.form-list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.form-item {
+    text-align: center;
+    min-width: 90px;
+}
+
+.form-item a {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.form-item img {
+    width: 72px;
+    height: 72px;
+    display: block;
+    margin: 0 auto 4px;
+}
+
+.form-item span {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.form-item a:hover img {
+    transform: scale(1.08);
+    transition: transform 0.2s ease;
+}
+
+.nav-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin: 20px 0;
+}
+
+.nav-btn {
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-weight: bold;
+    font-size: 15px;
+    color: #fff !important;
+    text-decoration: none;
+    letter-spacing: 0.3px;
+
+    background: linear-gradient(135deg, #888, #555);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
