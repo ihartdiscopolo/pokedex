@@ -42,14 +42,28 @@ $list = json_decode($listJson, true);
     <!-- TEAM BUILDER SIDEBAR -->
     <div id="teamSidebar">
         <h2>Your Team</h2>
+
+        <hr>
+
         <p>Select Pokémon to add them to your team.</p>
-        <button id="randomTeamBtn" class="random-btn">Randomize Team!</button>
+        <button id="randomTeamBtn" class="random-btn">Randomize Team</button>
 
 
         <div id="teamSlots" class="team-slots"></div>
 
+        <hr>
+
         <h3>Team Type Coverage</h3>
         <div id="teamCoverage"></div>
+
+        <hr>
+
+        <h3>Saved Teams</h3>
+
+        <input type="text" id="teamNameInput" placeholder="Team name">
+        <button id="saveTeamBtn">Save Team</button>
+
+        <div id="savedTeamsList"></div>
     </div>
 
     <div id="contentWrapper">
@@ -124,10 +138,8 @@ $list = json_decode($listJson, true);
 <script>
     const items = document.querySelectorAll(".poke-item");
 
-    // Track how many type requests are left
     let pendingTypes = items.length;
 
-    // Load types for each Pokémon (quick & async)
     items.forEach(item => {
         const id = item.dataset.id;
 
@@ -137,17 +149,10 @@ $list = json_decode($listJson, true);
                 const types = data.types.map(t => t.type.name);
                 item.dataset.types = types.join(",");
             })
-            .catch(() => {
-                // fallback if API fails
-                item.dataset.types = "";
-            })
+            .catch(() => item.dataset.types = "")
             .finally(() => {
                 pendingTypes--;
-
-                // When ALL types are loaded → apply filters once correctly
-                if (pendingTypes === 0) {
-                    applyFilters();
-                }
+                if (pendingTypes === 0) applyFilters();
             });
     });
 
@@ -155,10 +160,8 @@ $list = json_decode($listJson, true);
     const typeFilter = document.getElementById("typeFilter");
     const favOnlyCheckbox = document.getElementById("favOnly");
 
-    // Load favorites from localStorage
     let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
 
-    // Pre-check favorite boxes on page load
     document.querySelectorAll(".fav-checkbox").forEach(cb => {
         const id = cb.dataset.id;
         if (favorites.includes(id)) cb.checked = true;
@@ -172,20 +175,23 @@ $list = json_decode($listJson, true);
         });
     });
 
-    // Filtering function
     function applyFilters() {
         const search = searchInput.value.toLowerCase();
         const type = typeFilter.value;
         const favOnly = favOnlyCheckbox.checked;
 
+        document.body.className = "";
+
+        if (type) {
+            document.body.classList.add(`type-${type}`);
+        }
+
         items.forEach(item => {
             const name = item.dataset.name;
             const id = item.dataset.id;
-            const types = item.dataset.types ?
-                item.dataset.types.split(",").filter(t => t.length > 0) : [];
+            const types = item.dataset.types ? item.dataset.types.split(",") : [];
 
             let visible = true;
-
             if (search && !(name.includes(search) || id === search)) visible = false;
             if (type && !types.includes(type)) visible = false;
             if (favOnly && !favorites.includes(id)) visible = false;
@@ -194,21 +200,9 @@ $list = json_decode($listJson, true);
         });
     }
 
-    // Listeners
     searchInput.addEventListener("input", applyFilters);
     typeFilter.addEventListener("change", applyFilters);
     favOnlyCheckbox.addEventListener("change", applyFilters);
-
-    // Background color logic
-    typeFilter.addEventListener("change", () => {
-        const type = typeFilter.value;
-        document.body.className = [...document.body.classList]
-            .filter(c => !c.startsWith("type-"))
-            .join(" ");
-        if (type) document.body.classList.add("type-" + type);
-    });
-
-    applyFilters();
 
     const menuBtn = document.getElementById("menuBtn");
     const teamSidebar = document.getElementById("teamSidebar");
@@ -217,7 +211,12 @@ $list = json_decode($listJson, true);
         teamSidebar.classList.toggle("open");
     });
 
+    /* ============================
+       TEAM + SAVED TEAMS
+    ============================ */
+
     let team = JSON.parse(localStorage.getItem("team") || "[]");
+    let savedTeams = JSON.parse(localStorage.getItem("savedTeams") || "{}");
 
     function saveTeam() {
         localStorage.setItem("team", JSON.stringify(team));
@@ -226,13 +225,10 @@ $list = json_decode($listJson, true);
 
     document.querySelectorAll(".add-team-btn").forEach(btn => {
         btn.addEventListener("click", () => {
+            if (team.length >= 6) return alert("Team full (6 max)");
+
             const id = btn.dataset.id;
             const name = btn.dataset.name;
-
-            if (team.length >= 6) {
-                alert("Your Pokémon team is full (max 6).");
-                return;
-            }
 
             if (!team.find(p => p.id === id)) {
                 team.push({
@@ -250,12 +246,12 @@ $list = json_decode($listJson, true);
 
         team.forEach((p, i) => {
             slotBox.innerHTML += `
-            <div class="team-member">
-                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png">
-                <strong>${p.name}</strong>
-                <button onclick="removeFromTeam(${i})">❌</button>
-            </div>
-        `;
+                <div class="team-member">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png">
+                    <strong>${p.name}</strong>
+                    <button onclick="removeFromTeam(${i})">❌</button>
+                </div>
+            `;
         });
 
         updateTeamCoverage();
@@ -266,101 +262,98 @@ $list = json_decode($listJson, true);
         saveTeam();
     }
 
-    /* ---------------------------
-    TEAM TYPE COVERAGE
-    --------------------------- */
+    /* ============================
+       SAVE / LOAD TEAMS
+    ============================ */
+
+    document.getElementById("saveTeamBtn").addEventListener("click", () => {
+        const name = document.getElementById("teamNameInput").value.trim();
+
+        if (!name) return alert("Enter a team name");
+        if (!team.length) return alert("Team is empty");
+
+        savedTeams[name] = [...team];
+        localStorage.setItem("savedTeams", JSON.stringify(savedTeams));
+        renderSavedTeams();
+        document.getElementById("teamNameInput").value = "";
+    });
+
+    function renderSavedTeams() {
+        const box = document.getElementById("savedTeamsList");
+        box.innerHTML = "";
+
+        Object.keys(savedTeams).forEach(name => {
+            box.innerHTML += `
+                <div class="saved-team">
+                    <strong>${name}</strong>
+                    <button onclick="loadTeam('${name}')">Deploy</button>
+                    <button onclick="deleteTeam('${name}')">🗑</button>
+                </div>
+            `;
+        });
+    }
+
+    function loadTeam(name) {
+        team = [...savedTeams[name]];
+        saveTeam();
+    }
+
+    function deleteTeam(name) {
+        if (!confirm(`Delete "${name}"?`)) return;
+        delete savedTeams[name];
+        localStorage.setItem("savedTeams", JSON.stringify(savedTeams));
+        renderSavedTeams();
+    }
+
+    /* ============================
+       TEAM TYPE COVERAGE
+    ============================ */
+
     async function updateTeamCoverage() {
         const coverageBox = document.getElementById("teamCoverage");
-        let combinedWeak = {};
-        let combinedStrong = {};
+        let weak = {},
+            strong = {};
 
         for (let p of team) {
             let data = await fetch(`https://pokeapi.co/api/v2/pokemon/${p.id}`).then(r => r.json());
-            let types = data.types.map(t => t.type.name);
-
-            for (let t of types) {
-                let tData = await fetch(`https://pokeapi.co/api/v2/type/${t}`).then(r => r.json());
-
-                tData.damage_relations.double_damage_from.forEach(w => {
-                    combinedWeak[w.name] = (combinedWeak[w.name] || 0) + 1;
-                });
-
-                tData.damage_relations.half_damage_from.forEach(s => {
-                    combinedStrong[s.name] = (combinedStrong[s.name] || 0) + 1;
-                });
+            for (let t of data.types.map(x => x.type.name)) {
+                let td = await fetch(`https://pokeapi.co/api/v2/type/${t}`).then(r => r.json());
+                td.damage_relations.double_damage_from.forEach(w => weak[w.name] = (weak[w.name] || 0) + 1);
+                td.damage_relations.half_damage_from.forEach(s => strong[s.name] = (strong[s.name] || 0) + 1);
             }
         }
 
-        let html = "<h4>Weak To:</h4><div class='coverage-row'>";
-        for (let t in combinedWeak) {
-            html += `<span class="type-chip type-${t}">${t} x${combinedWeak[t]}</span>`;
-        }
-        html += "</div>";
-
-        html += "<h4>Resistant To:</h4><div class='coverage-row'>";
-        for (let t in combinedStrong) {
-            html += `<span class="type-chip type-${t}">${t} x${combinedStrong[t]}</span>`;
-        }
-        html += "</div>";
-
-        coverageBox.innerHTML = html;
+        coverageBox.innerHTML = `
+            <h4>Weak To:</h4>
+            <div class="coverage-row">
+                ${Object.entries(weak).map(([t,c]) => `<span class="type-chip type-${t}">${t} x${c}</span>`).join("")}
+            </div>
+            <h4>Resistant To:</h4>
+            <div class="coverage-row">
+                ${Object.entries(strong).map(([t,c]) => `<span class="type-chip type-${t}">${t} x${c}</span>`).join("")}
+            </div>
+        `;
     }
 
-    /* ----------------------------------------------
-       FIXED RANDOM TEAM GENERATOR (WORKING VERSION)
-    ---------------------------------------------- */
-
-    function getAllPokemonPool(fromFavorites = false) {
-        const nodes = Array.from(document.querySelectorAll(".poke-item"));
-        const pool = nodes
-            .map(item => {
-                const id = item.dataset.id;
-                let name = item.dataset.name || "";
-                name = name.charAt(0).toUpperCase() + name.slice(1);
-                return {
-                    id,
-                    name
-                };
-            })
-            .filter(p => p.id);
-
-        if (fromFavorites) {
-            return pool.filter(p => favorites.includes(p.id));
-        }
-
-        return pool;
-    }
+    /* ============================
+    RANDOM TEAM
+    ============================ */
 
     function pickRandomN(arr, n) {
-        const copy = arr.slice();
-        for (let i = copy.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [copy[i], copy[j]] = [copy[j], copy[i]];
-        }
-        return copy.slice(0, n);
+        return arr.sort(() => 0.5 - Math.random()).slice(0, n);
     }
 
     document.getElementById("randomTeamBtn").addEventListener("click", () => {
-        const pool = getAllPokemonPool(false);
-
-        const teamSize = Math.min(6, pool.length);
-        const randomTeam = pickRandomN(pool, teamSize);
-
-        team = randomTeam;
+        const pool = [...items].map(i => ({
+            id: i.dataset.id,
+            name: i.dataset.name
+        }));
+        team = pickRandomN(pool, 6);
         saveTeam();
     });
 
     renderTeam();
-
-    document.getElementById("randomPokemonBtn").addEventListener("click", () => {
-        const items = Array.from(document.querySelectorAll(".poke-item"));
-        if (!items.length) return;
-
-        const randomItem = items[Math.floor(Math.random() * items.length)];
-        const id = randomItem.dataset.id;
-
-        window.location.href = `pokemon.php?id=${id}`;
-    });
+    renderSavedTeams();
 </script>
 
 </html>

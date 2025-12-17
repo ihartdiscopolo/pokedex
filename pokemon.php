@@ -176,7 +176,7 @@ if ($secondaryType) {
 <body
     style="<?= htmlspecialchars($bodyStyle) ?>"
     class="<?= $primaryType ? 'type-' . htmlspecialchars($primaryType) : '' ?><?= $secondaryType ? ' dual-type' : '' ?>"
->
+    >
 
 
     <a href="index.php">⬅ Back to Pokédex</a>

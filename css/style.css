@@ -79,7 +79,7 @@ body.dual-type {
 }
 
 .type-grass .nav-btn {
-    background: linear-gradient(135deg, #92c657, #9ccc65);
+    background: linear-gradient(135deg, #3a973b, #bbed82);
 }
 
 .type-electric .nav-btn {
@@ -160,6 +160,12 @@ h2,
 h3,
 h4 {
     font-weight: normal;
+}
+
+h1 {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
 }
 
 a {
@@ -507,6 +513,92 @@ details ul li {
     left: 0;
 }
 
+/* =========================
+   SAVED TEAMS (SIDEBAR)
+========================= */
+
+#teamSidebar h3 {
+    margin-top: 24px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+#teamNameInput {
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+#saveTeamBtn {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 14px;
+    border: none;
+    border-radius: 10px;
+    background-color: #56bd5d;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s ease;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* SAVED TEAMS LIST */
+#savedTeamsList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 20px;
+}
+
+/* INDIVIDUAL SAVED TEAM CARD */
+.saved-team {
+    background: #f3f3f3;
+    padding: 10px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.saved-team strong {
+    flex: 1;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* DEPLOY BUTTON */
+.saved-team button {
+    border: none;
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.15s ease;
+}
+
+/* Deploy */
+.saved-team button:first-of-type {
+    background-color: #90caf9;
+    color: #fff;
+}
+
+/* Delete */
+.saved-team button:last-of-type {
+    background-color: #ff867f;
+    color: #fff;
+}
+
 /* TEAM MEMBERS */
 .team-slots {
     display: flex;
@@ -594,21 +686,21 @@ details ul li {
     text-align: center;
 }
 
-/* RANDOMIZE TEAM BUTTON STYLE */
 .random-small-btn {
     padding: 8px 14px;
     margin-left: 8px;
-    background: linear-gradient(135deg, #ff4545, #ff9854);
+    background-color: #ff9756;
     color: white;
     font-weight: bold;
     border: none;
-    border-radius: 20px;
+    border-radius: 6px;
     cursor: pointer;
     transition: 0.2s ease;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
 }
 
 .random-small-btn:hover {
+    background-color: #ff8235;
     transform: translateY(-2px);
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
 }
@@ -653,7 +745,7 @@ details ul li {
     width: 100%;
     padding: 12px;
     margin: 12px 0 20px 0;
-    background: linear-gradient(135deg, #ff8e43, #ff2222);
+    background-color: #ff2222;
     color: white;
     font-size: 16px;
     font-weight: bold;
@@ -665,12 +757,7 @@ details ul li {
 }
 
 .random-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
-}
-
-.random-btn:active {
-    transform: scale(0.97);
+    background-color: #db1f1f;
 }
 
 .evo-chain {
@@ -683,8 +770,8 @@ details ul li {
     align-items: flex-start;
 
     gap: 14px;
-    flex-wrap: wrap; /* ✅ allow wrapping */
-    row-gap: 16px; /* ✅ spacing between rows */
+    flex-wrap: wrap;
+    row-gap: 16px;
 }
 
 .evo-item {
@@ -776,4 +863,19 @@ details ul li {
     background: linear-gradient(135deg, #888, #555);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
     transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+/* Save Team Button */
+#saveTeamBtn:hover {
+    background-color: #45a04d; /* slightly darker green */
+}
+
+/* Deploy Button */
+.saved-team button:first-of-type:hover {
+    background-color: #7dc5ff; /* slightly darker blue */
+}
+
+/* Delete Button */
+.saved-team button:last-of-type:hover {
+    background-color: #ff6c67; /* slightly darker red */
 }
