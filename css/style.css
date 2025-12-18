@@ -1,4 +1,4 @@
-@font-face {
+/* @font-face {
     font-family: "MyCustomFont";
     src: url("../font/arcadeclassic/ARCADECLASSIC.TTF") format("truetype");
     font-weight: normal;
@@ -10,7 +10,7 @@
     src: url("../font/boldpixels/BoldPixels.ttf") format("truetype");
     font-weight: normal;
     font-style: normal;
-}
+} */
 
 body {
     background: var(--type1, #f4f4f4);
@@ -163,7 +163,8 @@ html {
     overflow-y: scroll;
 }
 body {
-    font-family: "MyCustomFont2";
+    /* font-family: "MyCustomFont2"; */
+    font-family: Arial, Helvetica, sans-serif;
     max-width: 1200px;
     margin: auto;
     padding: 20px;
@@ -174,18 +175,20 @@ h2,
 h3,
 h4 {
     font-weight: normal;
-    font-family: "MyCustomFont";
+    font-weight: bold;
+    /* font-family: "MyCustomFont"; */
 }
 
 h1 {
-    font-family: "MyCustomFont";
+    /* font-family: "MyCustomFont"; */
     text-align: center;
     justify-content: center;
     align-items: center;
 }
 
 button {
-    font-family: "MyCustomFont";
+    font-weight: bold;
+    text-transform: uppercase;
 }
 
 a {
@@ -304,7 +307,7 @@ a:hover {
     margin-top: 28px;
     padding-bottom: 6px;
     border-bottom: 2px solid #eee;
-    /* font-weight: bold; */ 
+    font-weight: bold;
 }
 
 .pokemon-card p {
@@ -347,7 +350,7 @@ ul li {
     padding: 12px;
     border-radius: 8px;
     display: inline-block;
-       /* font-weight: bold; */
+    font-weight: bold;
 }
 details {
     background: #fff;
@@ -364,7 +367,7 @@ details summary {
 details summary h3 {
     margin: 0;
     font-size: 18px;
-        /* font-weight: bold; */
+    font-weight: bold;
     line-height: 1.2;
 }
 details summary::-webkit-details-marker {
@@ -474,6 +477,7 @@ details ul li {
 
 /* Star emoji uses ::before so content can change */
 .star-emoji::before {
+    font-family: Arial, Helvetica, sans-serif;
     content: "☆"; /* default star */
     font-size: 24px;
     color: #bbb;
@@ -525,7 +529,7 @@ details ul li {
 }
 
 #teamSidebar h2 {
-        /* font-weight: bold; */
+    font-weight: bold;
     padding-top: 40px;
 }
 
@@ -540,7 +544,7 @@ details ul li {
 #teamSidebar h3 {
     margin-top: 24px;
     margin-bottom: 10px;
-        /* font-weight: bold; */
+    font-weight: bold;
     font-size: 18px;
 }
 
@@ -562,7 +566,7 @@ details ul li {
     border-radius: 10px;
     background-color: #56bd5d;
     color: white;
-        /* font-weight: bold; */
+    font-weight: bold;
     cursor: pointer;
     transition: 0.2s ease;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
@@ -602,7 +606,7 @@ details ul li {
     border-radius: 8px;
     padding: 6px 8px;
     font-size: 12px;
-        /* font-weight: bold; */
+    font-weight: bold;
     cursor: pointer;
     transition: 0.15s ease;
 }
@@ -711,7 +715,7 @@ details ul li {
     margin-left: 8px;
     background-color: #ff9756;
     color: white;
-        /* font-weight: bold; */
+    font-weight: bold;
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -762,7 +766,7 @@ details ul li {
     background-color: #ff2222;
     color: white;
     font-size: 16px;
-        /* font-weight: bold; */
+    font-weight: bold;
     border: none;
     border-radius: 12px;
     cursor: pointer;
@@ -808,13 +812,13 @@ details ul li {
 .evo-item span {
     display: block;
     font-size: 0.9rem;
-        /* font-weight: bold; */
+    font-weight: bold;
     text-transform: capitalize;
 }
 
 .evo-arrow {
     font-size: 20px;
-        /* font-weight: bold; */
+    font-weight: bold;
     opacity: 0.6;
     line-height: 1;
 }
@@ -849,7 +853,7 @@ details ul li {
 .form-item span {
     display: block;
     font-size: 0.85rem;
-        /* font-weight: bold; */
+    font-weight: bold;
     text-transform: capitalize;
 }
 
@@ -868,7 +872,7 @@ details ul li {
 .nav-btn {
     padding: 10px 22px;
     border-radius: 999px;
-        /* font-weight: bold; */
+    font-weight: bold;
     font-size: 15px;
     color: #fff !important;
     text-decoration: none;

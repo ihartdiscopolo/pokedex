@@ -1,4 +1,23 @@
 <?php
+function fetchWithCache(string $url, string $cacheFile, int $ttl = 86400)
+{
+    // If cache exists and is fresh
+    if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < $ttl)) {
+        return json_decode(file_get_contents($cacheFile), true);
+    }
+
+    $json = @file_get_contents($url);
+    if ($json === false) return null;
+
+    // Ensure cache folder exists
+    if (!is_dir(dirname($cacheFile))) {
+        mkdir(dirname($cacheFile), 0777, true);
+    }
+
+    file_put_contents($cacheFile, $json);
+    return json_decode($json, true);
+}
+
 if (!isset($_GET['id'])) {
     die("No Pokémon selected.");
 }
@@ -6,14 +25,18 @@ if (!isset($_GET['id'])) {
 $id = intval($_GET['id']);
 
 // Basic Pokémon data
-$apiUrl = "https://pokeapi.co/api/v2/pokemon/$id/";
-$json = file_get_contents($apiUrl);
+// $apiUrl = "https://pokeapi.co/api/v2/pokemon/$id/";
+// $json = file_get_contents($apiUrl);
+// $pokemon = json_decode($json, true);
 
-if (!$json) {
+$pokemon = fetchWithCache(
+    "https://pokeapi.co/api/v2/pokemon/$id/",
+    __DIR__ . "/cache/pokemon_$id.json"
+);
+
+if (!$pokemon) {
     die("Pokémon not found.");
 }
-
-$pokemon = json_decode($json, true);
 
 $name = ucfirst($pokemon['name']);
 $weight = $pokemon['weight'];
@@ -23,9 +46,17 @@ $art = $pokemon['sprites']['other']['official-artwork']['front_default'] ?? '';
 // -------------------------------------
 // Fetch species data for description
 // -------------------------------------
-$speciesUrl = $pokemon['species']['url'];
-$speciesJson = file_get_contents($speciesUrl);
-$species = json_decode($speciesJson, true);
+
+// $speciesUrl = $pokemon['species']['url'];
+// $speciesJson = file_get_contents($speciesUrl);
+// $species = json_decode($speciesJson, true);
+
+$speciesId = basename(trim($pokemon['species']['url'], '/'));
+
+$species = fetchWithCache(
+    $pokemon['species']['url'],
+    __DIR__ . "/cache/species_$speciesId.json"
+);
 
 $flavor = "No description available.";
 
@@ -37,26 +68,91 @@ foreach ($species['flavor_text_entries'] as $entry) {
 }
 
 $encountersUrl = "https://pokeapi.co/api/v2/pokemon/$id/encounters";
-$encountersJson = file_get_contents($encountersUrl);
-$encounters = json_decode($encountersJson, true);
+// $encountersJson = file_get_contents($encountersUrl);
+// $encounters = json_decode($encountersJson, true);
+
+$encounters = fetchWithCache(
+    "https://pokeapi.co/api/v2/pokemon/$id/encounters",
+    __DIR__ . "/cache/encounters_$id.json"
+);
 
 
 // Get species data (already done)
-$evoChainUrl = $species['evolution_chain']['url'];
-$evoJson = file_get_contents($evoChainUrl);
-$evoData = json_decode($evoJson, true);
+
+// $evoChainUrl = $species['evolution_chain']['url'];
+// $evoJson = file_get_contents($evoChainUrl);
+// $evoData = json_decode($evoJson, true);
+
+// $evoData = fetchWithCache(
+//     $species['evolution_chain']['url'],
+//     __DIR__ . "/cache/evolution_$id.json"
+// );
+
+$chainId = basename(trim($species['evolution_chain']['url'], '/'));
+
+$evoData = fetchWithCache(
+    $species['evolution_chain']['url'],
+    __DIR__ . "/cache/evolution_chain_$chainId.json"
+);
 
 // Recursive function to flatten evolution chain
+
+// function getEvolutionChain($chain, &$result = [])
+// {
+//     $speciesJson = file_get_contents($chain['species']['url']);
+//     if (!$speciesJson) return $result;
+
+//     $speciesData = json_decode($speciesJson, true);
+//     if (!$speciesData || empty($speciesData['varieties'])) return $result;
+
+//     $pokemonUrl = $speciesData['varieties'][0]['pokemon']['url'];
+//     $pokeJson = file_get_contents($pokemonUrl);
+//     if (!$pokeJson) return $result;
+
+//     $pokeData = json_decode($pokeJson, true);
+//     if (!$pokeData) return $result;
+
+//     $result[] = [
+//         'id' => $pokeData['id'],
+//         'name' => $chain['species']['name'],
+//         'image' =>
+//         $pokeData['sprites']['other']['official-artwork']['front_default']
+//             ?? $pokeData['sprites']['front_default']
+//     ];
+
+//     foreach ($chain['evolves_to'] as $evo) {
+//         getEvolutionChain($evo, $result);
+//     }
+
+//     return $result;
+// }
+
 function getEvolutionChain($chain, &$result = [])
 {
-    // Fetch Pokémon data to get ID + image
-    $pokeJson = file_get_contents("https://pokeapi.co/api/v2/pokemon/" . $chain['species']['name']);
-    $pokeData = json_decode($pokeJson, true);
+    $speciesId = basename(trim($chain['species']['url'], '/'));
+
+    $speciesData = fetchWithCache(
+        $chain['species']['url'],
+        __DIR__ . "/cache/species_$speciesId.json"
+    );
+
+    if (!$speciesData || empty($speciesData['varieties'])) return $result;
+
+    $pokemonUrl = $speciesData['varieties'][0]['pokemon']['url'];
+    $pokemonId = basename(trim($pokemonUrl, '/'));
+
+    $pokeData = fetchWithCache(
+        $pokemonUrl,
+        __DIR__ . "/cache/pokemon_$pokemonId.json"
+    );
+
+    if (!$pokeData) return $result;
 
     $result[] = [
         'id' => $pokeData['id'],
         'name' => $chain['species']['name'],
-        'image' => $pokeData['sprites']['other']['official-artwork']['front_default']
+        'image' =>
+        $pokeData['sprites']['other']['official-artwork']['front_default']
             ?? $pokeData['sprites']['front_default']
     ];
 
@@ -67,20 +163,41 @@ function getEvolutionChain($chain, &$result = [])
     return $result;
 }
 
-$evolutionChain = getEvolutionChain($evoData['chain']);
+
+// $evolutionChain = getEvolutionChain($evoData['chain']);
+
+$evolutionChain = [];
+if (!empty($evoData['chain'])) {
+    $evolutionChain = getEvolutionChain($evoData['chain']);
+}
 
 $types = $pokemon['types'];
 $primaryType = $pokemon['types'][0]['type']['name'] ?? null;
 $secondaryType = $pokemon['types'][1]['type']['name'] ?? null;
 $damageRelations = [];
 
-foreach ($types as $t) {
-    $typeUrl = $t['type']['url'];
-    $typeJson = file_get_contents($typeUrl);
-    $typeData = json_decode($typeJson, true);
+// foreach ($types as $t) {
+// $typeUrl = $t['type']['url'];
+// $typeJson = file_get_contents($typeUrl);
+// $typeData = json_decode($typeJson, true);
+//     if ($typeJson === false) continue;
 
-    $damageRelations[$t['type']['name']] = $typeData['damage_relations'];
+//     $damageRelations[$t['type']['name']] = $typeData['damage_relations'];
+// }
+
+foreach ($types as $t) {
+    $typeName = $t['type']['name'];
+
+    $typeData = fetchWithCache(
+        $t['type']['url'],
+        __DIR__ . "/cache/type_$typeName.json"
+    );
+
+    if ($typeData) {
+        $damageRelations[$typeName] = $typeData['damage_relations'];
+    }
 }
+
 $effectiveness = [];
 
 foreach ($damageRelations as $type => $relations) {
@@ -115,7 +232,7 @@ foreach ($effectiveness as $type => $value) {
 }
 
 $prev = $id > 1 ? $id - 1 : null;
-$next = $id + 1; // allow next >151 if you want full dex; adjust if you want a cap
+$next = ($id < 1025) ? $id + 1 : null;
 
 $typeColors = [
     'normal' => '#a6a6a6ff',
@@ -175,8 +292,7 @@ if ($secondaryType) {
 
 <body
     style="<?= htmlspecialchars($bodyStyle) ?>"
-    class="<?= $primaryType ? 'type-' . htmlspecialchars($primaryType) : '' ?><?= $secondaryType ? ' dual-type' : '' ?>"
-    >
+    class="<?= $primaryType ? 'type-' . htmlspecialchars($primaryType) : '' ?><?= $secondaryType ? ' dual-type' : '' ?>">
 
 
     <a href="index.php">⬅ Back to Pokédex</a>
@@ -480,28 +596,45 @@ if ($secondaryType) {
             <p>No alternate forms.</p>
         <?php else: ?>
             <div class="evo-chain">
+
                 <?php foreach ($species['varieties'] as $form):
-                    $formName = ucfirst($form['pokemon']['name']);
-                    $formUrl = $form['pokemon']['url'];
 
-                    $formJson = file_get_contents($formUrl);
-                    $formData = json_decode($formJson, true);
+                    $pokemonUrl = $form['pokemon']['url'];
+                    $pokemonId = basename(trim($pokemonUrl, '/'));
 
-                    $formImg = $formData['sprites']['other']['official-artwork']['front_default']
+                    $formData = fetchWithCache(
+                        $pokemonUrl,
+                        __DIR__ . "/cache/pokemon_$pokemonId.json"
+                    );
+
+                    if (!$formData) continue;
+
+                    $baseName = ucfirst($species['name']);
+                    $slug = $formData['name'];
+
+                    $formName = str_replace($species['name'] . '-', '', $slug);
+                    $formName = ucfirst(str_replace('-', ' ', $formName));
+
+                    $displayName = ($slug !== $species['name'])
+                        ? "$baseName ($formName)"
+                        : $baseName;
+
+                    $formImg =
+                        $formData['sprites']['other']['official-artwork']['front_default']
                         ?? $formData['sprites']['front_default']
                         ?? null;
                 ?>
                     <div class="evo-item">
                         <a href="pokemon.php?id=<?= $formData['id'] ?>">
                             <?php if ($formImg): ?>
-                                <img src="<?= htmlspecialchars($formImg) ?>" alt="<?= htmlspecialchars($formName) ?>">
+                                <img src="<?= htmlspecialchars($formImg) ?>">
                             <?php endif; ?>
-                            <span><?= htmlspecialchars($formName) ?></span>
+                            <span><?= htmlspecialchars($displayName) ?></span>
                         </a>
                     </div>
+
                 <?php endforeach; ?>
             </div>
-
         <?php endif; ?>
 
         <details>

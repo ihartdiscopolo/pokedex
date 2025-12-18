@@ -68,7 +68,7 @@ $list = json_decode($listJson, true);
 
     <div id="contentWrapper">
 
-        <h1>Domi's Pokedex</h1>
+        <h1>Domi's/Mars' Pokedex</h1>
         <input type="text" id="search" placeholder="Search by name or ID...">
 
         <select id="typeFilter">
@@ -99,7 +99,7 @@ $list = json_decode($listJson, true);
         </label>
 
         <button id="randomPokemonBtn" class="random-small-btn">
-            Generate random Pokemon ? 
+            Generate random Pokemon ?
         </button>
 
         <hr>
@@ -167,7 +167,8 @@ $list = json_decode($listJson, true);
         if (favorites.includes(id)) cb.checked = true;
 
         cb.addEventListener("change", () => {
-            if (cb.checked) favorites.push(id);
+            // if (cb.checked) favorites.push(id);
+            if (cb.checked && !favorites.includes(id)) favorites.push(id);
             else favorites = favorites.filter(f => f !== id);
 
             localStorage.setItem("favorites", JSON.stringify(favorites));
@@ -180,11 +181,15 @@ $list = json_decode($listJson, true);
         const type = typeFilter.value;
         const favOnly = favOnlyCheckbox.checked;
 
-        document.body.className = "";
+        // document.body.className = "";
 
-        if (type) {
-            document.body.classList.add(`type-${type}`);
-        }
+        // if (type) {
+        //     document.body.classList.add(`type-${type}`);
+        // }
+
+        document.body.classList.remove(...document.body.classList);
+        if (type) document.body.classList.add(`type-${type}`);
+
 
         items.forEach(item => {
             const name = item.dataset.name;
@@ -192,7 +197,8 @@ $list = json_decode($listJson, true);
             const types = item.dataset.types ? item.dataset.types.split(",") : [];
 
             let visible = true;
-            if (search && !(name.includes(search) || id === search)) visible = false;
+            // if (search && !(name.includes(search) || id === search)) visible = false;
+            if (search && !(name.includes(search) || id === search.trim())) visible = false;
             if (type && !types.includes(type)) visible = false;
             if (favOnly && !favorites.includes(id)) visible = false;
 
@@ -346,7 +352,8 @@ $list = json_decode($listJson, true);
     document.getElementById("randomTeamBtn").addEventListener("click", () => {
         const pool = [...items].map(i => ({
             id: i.dataset.id,
-            name: i.dataset.name
+            // name: i.dataset.name
+            name: i.querySelector(".poke-name").textContent
         }));
         team = pickRandomN(pool, 6);
         saveTeam();
